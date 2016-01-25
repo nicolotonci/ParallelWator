@@ -1,0 +1,39 @@
+#!/bin/bash
+# \author lso15
+# \brief test finale di wator e visualizer
+
+CHECK_FILE=./wator.check
+rm -fr ${CHECK_FILE}
+if ls ${CHECK_FILE} ; then
+    exit 1
+fi
+echo "check 0"
+# attivazione corretta
+./wator planet3.dat -n 12 -v 100 -f dump.dat &
+echo "check 1"
+for ((i=0; i<30; i++));
+        do
+          sleep 1
+	  if ! killall -s SIGUSR1 wator ; then
+	      exit 1
+	  fi 
+done    
+echo "check 2"
+# attendo 1 secondo e controllo se e' ancora attivo e se ha creato il file
+sleep 1
+if ! killall -w wator && [ -f $CHECK_FILE ]; then
+    exit 1
+fi
+echo "check 3"
+# e' stato terminato correttamente anche il processo visualizer ?
+if  killall visualizer ; then
+    exit 1
+fi
+echo "check 4"
+# rimuovo e controllo che il file di check non sia presente
+rm -fr ${CHECK_FILE}
+if ls ${CHECK_FILE} ; then
+    exit 1
+fi
+echo "check 5"
+exit 0
