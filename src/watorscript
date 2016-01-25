@@ -1,0 +1,89 @@
+#!/bin/bash
+function shark_count {
+if [ -e "$1" ] ; then
+	grep -o 'S' "$1" | wc -l
+else
+	>&2 echo "file does not exist"
+	exit 1
+fi
+}
+
+function fish_count {
+if [ -e "$1" ] ; then
+	grep -o 'F' "$1" | wc -l
+else
+	>&2 echo "file does not exist"
+	exit 1
+fi
+}
+
+function check_file {
+	exec 4< $1	
+	read row <&4
+	read col <&4
+	re='^[0-9]+$'
+	if ! [[ $row =~ $re ]] && ! [[ $col =~ $re ]] ; then
+		>&2 echo "NO"
+		exit 1;
+	fi
+	for i in $(seq 1 $row); do
+		read line <&4
+		let j=0
+		for char in $line; do
+			if [ $char != "W" -a $char != "F" -a $char != "S" ]; then
+				>&2 echo "NO"
+				exit 1
+			fi
+			((j++))
+		done
+		if [ $j != $col ]; then 
+			>&2 echo "NO"
+			exit 1
+		fi
+	done
+	if [ $i != $row ]; then
+		>&2 echo "NO"
+	else 
+		>&2 echo "OK"
+	fi
+	exec 4>&-
+}
+
+case "$#" in 
+	(0) 
+		>&2 echo "need at least 1 parameter"
+		exit 1;;
+	(1) 
+		if test "$1" == '--help'; then
+			clear
+			>&2 echo "Script for check planets file"
+			>&2 echo ""
+			>&2 echo "Use './watorscript [FILE]' for check if the file in the param is well structured"
+			>&2 echo "Use './watorscript [FILE] -s' or './watorscript -s [FILE]' to count sharks"
+			>&2 echo "Use './watorscript [FILE] -f' or './watorscript -f [FILE]' to count fishes"
+			>&2 echo ""
+			>&2 echo "For bugs report mail at nicolotonci@tiscali.it"
+			exit 1
+		elif [ -e "$1" ]; then
+			check_file $1
+		else
+			>&2 echo "error! file does not exist! or wrong parameter"
+			exit 1
+		fi;;
+	(2)
+		case "$1" in
+			("-f") fish_count $2;;
+			("-s") shark_count $2;;
+			( * )
+				case "$2" in
+					("-f") fish_count $1;;
+					("-s") shark_count $1;;
+					( * ) 
+						>&2 echo "paramenter(s) wrong!"
+						exit 1
+				esac;;
+		esac;;
+		(*) 
+			>&2 echo "wrong number of parameters"
+			exit 1;;
+esac
