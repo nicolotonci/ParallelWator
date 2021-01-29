@@ -1,4 +1,4 @@
-# DistributedWator
+# ParallelWator
 
 The project consist of a parallel Wa-Tor simulation in C using POSIX Pthread library.
 
